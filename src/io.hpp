@@ -13,8 +13,10 @@
 #include <fstream>
 #include <stdexcept>
 #include <assert.h>
+#include <bitset>
 
 #include "variable.hpp"
+#include "pattern.hpp"
 
 class Agent {
 public:
@@ -49,10 +51,10 @@ public:
         printf("reading end\n");
     }
 
-    void IO_GEN(std::string exec_name) {
+    void IO_GEN(std::string exec_name, int patternNum, Pattern patterns[]) {
         pid = fork();
         if (!pid) { // child process
-            gen_input_pattern(64);
+            gen_input_pattern(patternNum, patterns);
             if (execlp(exec_name.c_str(), exec_name.c_str(), patFilename.c_str(), 
                         relFilename.c_str(), NULL) == -1) {
                 fprintf(stderr, "run exec error\n");
@@ -61,8 +63,8 @@ public:
         }
     }
 
-    void gen_input_pattern(int patternNum) {
-        srand(time(NULL));
+    void gen_input_pattern(int patternNum, Pattern patterns[]) {
+        //srand(time(NULL));
         std::fstream pattern_io;
         pattern_io.open(patFilename, std::fstream::out);
         pattern_io << vars->inputNum << " " << patternNum << "\n"; 
@@ -73,13 +75,11 @@ public:
 
         for (int i = 0; i < patternNum; i++) {
             std::string pattern;
-            int random;
+            pattern += patterns[i].data[0]?"1":"0";
             for (int j = 0; j < vars->inputNum-1; j++){
-                random = rand(); // random gen the pattern
-                pattern += (random&1)?"1 ":"0 ";
+                pattern += patterns[i].data[j]?" 1":" 0";
             }
-            random = rand();
-            pattern += (random&1)?"1\n":"0\n";
+            pattern += "\n";
             pattern_io << pattern; 
         }
         pattern_io.close();

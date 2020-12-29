@@ -37,7 +37,14 @@ int main (int argc, char **argv) {
     Vars* vars = new Vars;
     Agent IO(vars);
     IO.IO_INFO(ioinfo);
-    IO.IO_GEN(iogen);
+    // may be need to set the gen random pattern as function
+    Pattern patterns[64];
+    for (int i = 0; i < 64; i++) {
+        patterns[i].set_size(vars->inputNum);
+        patterns[i].randBitset();
+    }
+    IO.IO_GEN(iogen, 64, patterns);
+
     sleep(1);
     IO.read_relation();
 

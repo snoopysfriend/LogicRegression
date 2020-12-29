@@ -14,8 +14,17 @@
 #include <stdexcept>
 #include <assert.h>
 
+#include "variable.hpp"
+
 class Agent {
 public:
+
+    Agent(Vars* v) {
+        if (v == NULL) {
+            throw std::runtime_error("variables should not be null\n");
+        }
+        vars = v;
+    }
 
     void IO_INFO(std::string filename) {
         input.open(filename, std::fstream::in); 
@@ -27,15 +36,17 @@ public:
     }
 
     void read_info() {
-        input >> inputNum >> outputNum;
-        inputNames.resize(inputNum);
-        outputNames.resize(outputNum);
-        for (int i = 0; i < inputNum; i++) {
-            input >> inputNames[i];
+        printf("reading\n");
+        input >> vars->inputNum >> vars->outputNum;
+        vars->inputNames.resize(vars->inputNum);
+        vars->outputNames.resize(vars->outputNum);
+        for (int i = 0; i < vars->inputNum; i++) {
+            input >> vars->inputNames[i];
         }
-        for (int i = 0; i < outputNum; i++) {
-            input >> outputNames[i];
+        for (int i = 0; i < vars->outputNum; i++) {
+            input >> vars->outputNames[i];
         }
+        printf("reading end\n");
     }
 
     void IO_GEN(std::string exec_name) {
@@ -54,19 +65,21 @@ public:
         srand(time(NULL));
         std::fstream pattern_io;
         pattern_io.open(patFilename, std::fstream::out);
-        pattern_io << inputNum << " " << patternNum << "\n"; 
-        for (int i = 0; i < inputNum-1; i++) {
-            pattern_io << inputNames[i] << " ";
+        pattern_io << vars->inputNum << " " << patternNum << "\n"; 
+        for (int i = 0; i < vars->inputNum-1; i++) {
+            pattern_io << vars->inputNames[i] << " ";
         }
-        pattern_io << inputNames[inputNum-1] << "\n";
+        pattern_io << vars->inputNames[vars->inputNum-1] << "\n";
 
         for (int i = 0; i < patternNum; i++) {
-            int random = rand(); // random gen the pattern
             std::string pattern;
-            for (int j = 0; j < inputNum-1; j++) {
-                pattern += (random>>j)&1?"1 ":"0 ";
+            int random;
+            for (int j = 0; j < vars->inputNum-1; j++){
+                random = rand(); // random gen the pattern
+                pattern += (random&1)?"1 ":"0 ";
             }
-            pattern += (random>>(inputNum-1))&1?"1\n":"0\n";
+            random = rand();
+            pattern += (random&1)?"1\n":"0\n";
             pattern_io << pattern; 
         }
         pattern_io.close();
@@ -80,7 +93,7 @@ public:
         int patternNum; 
         relation >> inputNum2 >> outputNum2 >> patternNum;
         //std::cout << inputNum2 <<" "<< outputNum2 << std::endl;
-        assert(inputNum == inputNum2 && outputNum == outputNum2);
+        //assert(inputNum == inputNum2 && outputNum == outputNum2);
         patterns.resize(patternNum); 
         int size = inputNum2 + outputNum2;
         std::string Names[size];
@@ -97,9 +110,7 @@ public:
 private:
     int pid = -1;
     std::fstream input; 
-    int inputNum = -1, outputNum = -1;
-    std::vector<std::string> inputNames;
-    std::vector<std::string> outputNames;
+    Vars* vars;
     std::string patFilename = "in_pat.txt";
     std::string relFilename = "io_rel.txt";
     std::vector<std::string> patterns;

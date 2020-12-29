@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "io.hpp"
+#include "depend.cpp"
 
 bool executable(const char *file) {
     struct stat st;
@@ -32,7 +33,9 @@ int main (int argc, char **argv) {
     if (!executable(iogen.c_str())) {
         fprintf(stderr, "The input file is not executable\n");
     }
-    Agent IO;
+
+    Vars* vars = new Vars;
+    Agent IO(vars);
     IO.IO_INFO(ioinfo);
     IO.IO_GEN(iogen);
     sleep(1);

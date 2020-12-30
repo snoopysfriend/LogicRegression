@@ -7,7 +7,6 @@
 #include "io.hpp"
 #include "simulate.cpp"
 
-//  
 extern int PI_N;
 extern int PO_N;
 extern Agent IO; 
@@ -39,13 +38,16 @@ int main (int argc, char **argv) {
     }
 
     Vars* vars = new Vars;
+
     IO.set_vars(vars);
     IO.set_executename(iogen);
+
     IO.IO_INFO(ioinfo); // read io info
     std::cout << "PI_N: " << PI_N << std::endl;
     std::cout << "PO_N: " << PO_N << std::endl;
-    SUP output[PO_N];
-    find_depend(output);
+
+    SUP output[PO_N]; 
+    find_depend(output); // find the output dependency variable
 
 
     return 0;

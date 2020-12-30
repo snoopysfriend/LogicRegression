@@ -2,6 +2,7 @@
 #include <set>
 #include <string.h>
 #include <time.h>
+#include <algorithm>
 
 
 #include "pattern.hpp"
@@ -68,11 +69,19 @@ void find_depend(SUP output[]){
         for (int j = 0; j < PO_N; j++) {
             if (varietyCount[j] != 0) { // output[j] has dependcy on input[i]
                 output[j].var.insert(i);
+                output[j].piority.push_back(
+                        make_pair(i, varietyCount[j]));
             }
         }
+
     }
 
     for (int i = 0; i < PO_N; i++) {
+        // sort the input variety count 
+        sort(output[i].piority.begin(), output[i].piority.end(), 
+                [](std::pair<int, int> const& a, std::pair<int, int> const& b)
+                { return  a.second < b.second;});
+
         output[i].print();
     }
     return ;

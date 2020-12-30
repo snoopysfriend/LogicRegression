@@ -5,7 +5,12 @@
 #include <assert.h>
 
 #include "io.hpp"
-#include "depend.cpp"
+#include "simulate.cpp"
+
+//  
+extern int PI_N;
+extern int PO_N;
+extern Agent IO; 
 
 bool executable(const char *file) {
     struct stat st;
@@ -13,7 +18,6 @@ bool executable(const char *file) {
     if (st.st_mode & S_IEXEC) return true;
     return false; 
 }
-
 
 int main (int argc, char **argv) {
 
@@ -35,18 +39,13 @@ int main (int argc, char **argv) {
     }
 
     Vars* vars = new Vars;
-    Agent IO(vars);
-    IO.IO_INFO(ioinfo);
-    // may be need to set the gen random pattern as function
-    Pattern patterns[64];
-    for (int i = 0; i < 64; i++) {
-        patterns[i].set_size(vars->inputNum);
-        patterns[i].randBitset();
-    }
-    IO.IO_GEN(iogen, 64, patterns);
-
-    sleep(1);
-    IO.read_relation();
+    IO.set_vars(vars);
+    IO.set_executename(iogen);
+    IO.IO_INFO(ioinfo); // read io info
+    std::cout << "PI_N: " << PI_N << std::endl;
+    std::cout << "PO_N: " << PO_N << std::endl;
+    SUP output[PO_N];
+    find_depend(output);
 
 
     return 0;

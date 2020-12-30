@@ -1,7 +1,7 @@
 #include "pattern.hpp"
 
 Pattern::Pattern() {
-
+    data = 0;
 }
 
 Pattern::Pattern(int s) {

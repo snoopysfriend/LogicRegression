@@ -6,10 +6,11 @@
 
 #include "io.hpp"
 #include "simulate.cpp"
+#include "decision.hpp"
 
-extern int PI_N;
-extern int PO_N;
-extern Agent IO; 
+int PI_N;
+int PO_N;
+Agent IO; 
 
 bool executable(const char *file) {
     struct stat st;
@@ -48,6 +49,12 @@ int main (int argc, char **argv) {
 
     SUP output[PO_N]; 
     find_depend(output); // find the output dependency variable
+
+    Tree FDBT(PI_N, output[0]);
+    FDBT.unate_paradim(100);
+    FDBT.print();
+
+     
 
 
     return 0;

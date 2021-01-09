@@ -4,7 +4,13 @@ Pattern::Pattern() {
     data = 0;
 }
 
+Pattern::Pattern(const Pattern& p) {
+    data = p.data;
+    size = p.size; 
+}
+
 Pattern::Pattern(int s) {
+    data = 0;
     size = s;
 }
 

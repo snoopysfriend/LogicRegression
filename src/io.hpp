@@ -20,8 +20,9 @@
 #include "pattern.hpp"
 
 
-int PI_N;
-int PO_N;
+extern int PI_N;
+extern int PO_N;
+
 class Agent {
 public:
     Agent() {
@@ -166,5 +167,4 @@ private:
     std::vector<std::string> patterns_s;
 };
 
-Agent IO;  
 #endif

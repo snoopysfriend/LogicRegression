@@ -7,10 +7,17 @@
 #include "support.hpp"
 
 //extern Agent IO;
+inline int literal(int index, bool sign) {
+    return (index<<1) + sign;
+}
+  
+inline int lit_to_var(int lit) {
+    return (lit>>1);
+}
 
 typedef enum  {
-    ONSET,
-    OFFSET
+    OFFSET,
+    ONSET
 } CARE;
 
 typedef enum {
@@ -41,10 +48,13 @@ public:
     Node(const Node*, int); // constructor from parent node with value
     ~Node();
 	void span(int);
-    void gen_function(std::set<int>&);
+    void gen_function(std::vector<int>&);
 
     inline SUP* get_support() {
         return &sup;
+    }
+    inline int get_support_size() {
+        return sup.var.size();
     }
     inline int get_value() {
         return value;
@@ -74,22 +84,41 @@ private:
 	Pattern Pmask;
 	Pattern Nmask;
 	int value;
-    size_t height;
+    int height;
 };
 
 class Tree {
 public:
-    Tree(int Pi_Num, SUP sup);
+    Tree();
+    void init(int Pi_Num, SUP sup);
     ~Tree();
     void unate_paradim(int limit);
+    void brute_force();
+    void recurse(int, Pattern [], Pattern, SUP&);
     void simulate_variation(Node*);
     void gen_flip_random(Node* node, int bit_place, int batchNum, Pattern patterns[]);
+    void gen_function(Node* node);
     void print();
+    inline CARE get_care() {
+        return care;
+    }
+    inline Node* get_root() {
+        return root;
+    }
+    inline std::vector<std::vector<int>>* get_function() {
+        if (care == ONSET) {
+            return &onset;
+        } else {
+            return &offset;
+        }
+    }
+
 private: 
-    std::vector<std::set<int>> functions;
+    std::vector<std::vector<int>> onset;
+    std::vector<std::vector<int>> offset;
     Node* root;
     CARE care;
-	size_t count;
+	int count;
 	int height;
 };
 

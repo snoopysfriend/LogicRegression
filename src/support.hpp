@@ -16,7 +16,7 @@ public:
     SUP(const SUP& s) {
         o_idx = s.o_idx;
         var = s.var;
-        piority = s.piority;
+        //piority = s.piority;
     }
 
     inline void set_idx(int i) {

@@ -7,6 +7,7 @@
 #include "io.hpp"
 #include "simulate.cpp"
 #include "decision.hpp"
+#include "blif.cpp"
 
 int PI_N;
 int PO_N;
@@ -50,11 +51,25 @@ int main (int argc, char **argv) {
     SUP output[PO_N]; 
     find_depend(output); // find the output dependency variable
 
-    Tree FDBT(PI_N, output[0]);
-    FDBT.unate_paradim(100);
-    FDBT.print();
+    Tree FDBTS[PO_N];
+    for (int i = 0; i < PO_N; i++) {
+        if (output[i].var.size() > 0) {
+            fprintf(stderr, "var size %d\n", output[i].var.size());
+            FDBTS[i].init(PI_N, output[i]);
+            if (output[i].var.size() < 18) {
+                FDBTS[i].brute_force();
+                FDBTS[i].print();
+            } else {
+                printf("var too many %d\n", output[i].var.size());
+            //FDBTS[i].unate_paradim(100);
 
-     
+            }
+        } else {
+
+        }
+    }
+
+    print_to_blif(FDBTS, vars);
 
 
     return 0;

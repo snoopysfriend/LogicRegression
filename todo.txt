@@ -1,6 +1,8 @@
 1. 
-Figure out the comparter and linear arithmetic template
-2. 
-FBDT of the true ratio node reasons
+Bruteforce simulation
 3. 
-Read the third-place paper
+ABC backend
+4. 
+testing accuracy
+5. 
+time profiling

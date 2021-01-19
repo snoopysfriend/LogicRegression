@@ -8,14 +8,16 @@
 class SUP {
 public:
     int o_idx;
+    int constant;
     std::set<int> var;
     std::vector<std::pair<int, int>> piority; // first the var index second the number 
     SUP() {
-
+        this->constant = -1;
     }
     SUP(const SUP& s) {
-        o_idx = s.o_idx;
-        var = s.var;
+        this->o_idx = s.o_idx;
+        this->var = s.var;
+        this->constant = s.constant;
         //piority = s.piority;
     }
 
@@ -31,10 +33,6 @@ public:
             std::cout << v << " ";
         }
         std::cout << "\n";
-        /*
-        for (auto p: piority) {
-            std::cout << p.first << " " << p.second << "\n";
-        }*/
     }
 };
 

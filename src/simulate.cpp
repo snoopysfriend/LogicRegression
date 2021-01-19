@@ -205,6 +205,9 @@ void find_depend(SUP output[]){
                 { return  a.second < b.second;});
 
         output[i].print();
+        if (output[i].var.size() == 0) {
+            output[i].constant = output_patterns[0].data[i]?1:0;
+        }
     }
     return ;
 }

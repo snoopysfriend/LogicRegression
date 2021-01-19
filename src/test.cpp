@@ -14,6 +14,7 @@
 int PI_N;
 int PO_N;
 Agent IO; 
+std::string caseNum;
 
 bool executable(const char *file) {
     struct stat st;
@@ -26,11 +27,9 @@ double accurate(int PatterNum, Pattern answer[], Pattern predicts[]) {
     double acc;
     int right = 0;
     for (int i = 0; i < PatterNum; i++) {
-        //printf("error %d\n", i);
         int flag = 1;
         for (int j = 0; j < PO_N; j++) {
             if (answer[i].data[j] != predicts[i].data[j]){
-                //printf("%d", j);
                 flag = 0; 
             }
         }
@@ -46,7 +45,7 @@ double accurate(int PatterNum, Pattern answer[], Pattern predicts[]) {
 int main (int argc, char **argv) {
 
     if (argc < 4) {
-        fprintf(stderr, "Usage: ./test <io_info.txt> <iogen> <circuit.v>\n");
+        fprintf(stderr, "Usage: ./test <io_info.txt> <iogen> <circuit.v> \n");
         exit(-1);
     }
 

@@ -15,6 +15,7 @@
 int PI_N;
 int PO_N;
 Agent IO; 
+std::string caseNum_s;
 
 int sec = 3600;
 
@@ -56,6 +57,7 @@ int main (int argc, char **argv) {
     iogen = argv[2];
     outputCircuit = argv[3];
 
+
     if (!executable(iogen.c_str())) {
         fprintf(stderr, "The input file is not executable\n");
     }
@@ -74,7 +76,7 @@ int main (int argc, char **argv) {
 
 
     Tree FDBTS[PO_N];
-    int height_limit = 27;
+    int height_limit = 30;
     for (int i = 0; i < PO_N; i++) {
         if (output[i].var.size() > 0) {
             fprintf(stderr, "var size %d\n", output[i].var.size());
@@ -88,6 +90,7 @@ int main (int argc, char **argv) {
                 FDBTS[i].unate_paradim(height_limit);
             }
         } else {
+            FDBTS[i].init(PI_N, output[i]);
             printf("constant node %d\n", output[i].var.size());
         }
     }

@@ -19,8 +19,10 @@ void read_abc(int PatterNum, Pattern patterns[]) {
     FILE* fp = fopen(read_file, "r");
     char* buffer = NULL;
     size_t len;
-    if (fp == NULL)
+    if (fp == NULL){
+        printf("can not open\n");
         return;
+    }
     int read; 
     //char b[1024];
     //fscanf(fp, "%s", b);

@@ -6,6 +6,7 @@
 
 #include "io.hpp"
 #include "simulate.cpp"
+#include "circuit.cpp"
 
 extern int PI_N;
 extern int PO_N;
@@ -49,6 +50,7 @@ int main (int argc, char **argv) {
     SUP output[PO_N]; 
     find_depend(output); // find the output dependency variable
 
-
+    Output_circuit o_cir(vars);
+    o_cir.write_circuit(outputCircuit);
     return 0;
 }

@@ -2,15 +2,21 @@
 #include <string>
 #include <getopt.h>
 #include <sys/stat.h>
+#include <signal.h>
+#include <sys/time.h> 
 #include <assert.h>
 
 #include "io.hpp"
 #include "simulate.cpp"
-#include "circuit.cpp"
+#include "decision.hpp"
+#include "blif.cpp"
 
-extern int PI_N;
-extern int PO_N;
-extern Agent IO; 
+
+int PI_N;
+int PO_N;
+Agent IO; 
+
+int sec = 5;
 
 bool executable(const char *file) {
     struct stat st;
@@ -19,12 +25,28 @@ bool executable(const char *file) {
     return false; 
 }
 
+void sigroutine(int signo) {
+    switch (signo) {
+        case SIGALRM:
+            printf("Catch a signal timeout\n");
+            exit(0);
+    }
+    return ;
+}
+
 int main (int argc, char **argv) {
 
     if (argc < 4) {
         fprintf(stderr, "Usage: ./lrg <io_info.txt> <iogen> <circuit.v>\n");
         exit(-1);
     }
+    struct itimerval value, ovalue;
+    signal(SIGALRM, sigroutine);
+    value.it_value.tv_sec = sec;
+    value.it_value.tv_usec = 0;
+    value.it_interval.tv_sec = sec;
+    value.it_interval.tv_usec = 0;
+    setitimer(ITIMER_REAL, &value, &ovalue);
 
     std::string ioinfo;
     std::string iogen;
@@ -50,7 +72,26 @@ int main (int argc, char **argv) {
     SUP output[PO_N]; 
     find_depend(output); // find the output dependency variable
 
-    Output_circuit o_cir(vars);
-    o_cir.write_circuit(outputCircuit);
+
+    Tree FDBTS[PO_N];
+    int height_limit = 27;
+    for (int i = 0; i < PO_N; i++) {
+        if (output[i].var.size() > 0) {
+            fprintf(stderr, "var size %d\n", output[i].var.size());
+            FDBTS[i].init(PI_N, output[i]);
+            if (output[i].var.size() < 18) {
+                FDBTS[i].brute_force();
+                FDBTS[i].print();
+            } else {
+                printf("var too many %d\n", output[i].var.size());
+                FDBTS[i].unate_paradim(height_limit);
+            }
+        } else {
+            printf("constant node %d\n", output[i].var.size());
+        }
+    }
+
+    print_to_blif(FDBTS, vars);
+
     return 0;
 }

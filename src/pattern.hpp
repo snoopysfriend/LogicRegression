@@ -7,7 +7,9 @@ using namespace std;
 class Pattern {
 public:
     Pattern();
+    Pattern(const Pattern& p);
     Pattern(int);
+    ~Pattern();
     void randBitset(); // gen the random bitset with the size of bits
     bitset<maxsize> data;
     inline int get_size(){ return size; };

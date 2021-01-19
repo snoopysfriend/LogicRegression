@@ -20,50 +20,51 @@
 #include "pattern.hpp"
 
 
-int PI_N;
-int PO_N;
+extern int PI_N;
+extern int PO_N;
+
 class Agent {
 public:
     Agent() {
 
     }
 
-    void set_vars(Vars* v) {
-        if (v == NULL) {
+    void set_vars(Vars* var) {
+        if (var == NULL) {
             throw std::runtime_error("variables should not be null\n");
         }
-        vars = v;
+        this->vars = var;
     }
     
     
     void IO_INFO(std::string filename) {
-        input.open(filename, std::fstream::in); 
-        if (!input.is_open()) {
+        this->input.open(filename, std::fstream::in); 
+        if (!this->input.is_open()) {
             throw std::runtime_error("Error opening io_info file\n");
         }
         read_info();
         PI_N = vars->inputNum;
         PO_N = vars->outputNum;
-        input.close();
+        this->input.close();
     }
 
     void read_info() {
         printf("reading\n");
-        input >> vars->inputNum >> vars->outputNum;
-        vars->inputNames.resize(vars->inputNum);
-        vars->outputNames.resize(vars->outputNum);
-        for (int i = 0; i < vars->inputNum; i++) {
-            input >> vars->inputNames[i];
+        this->input >> this->vars->inputNum >> this->vars->outputNum;
+        this->vars->inputNames.resize(this->vars->inputNum);
+        this->vars->outputNames.resize(this->vars->outputNum);
+        for (int i = 0; i < this->vars->inputNum; i++) {
+            this->input >> this->vars->inputNames[i];
         }
-        for (int i = 0; i < vars->outputNum; i++) {
-            input >> vars->outputNames[i];
+        for (int i = 0; i < this->vars->outputNum; i++) {
+            this->input >> this->vars->outputNames[i];
         }
         printf("reading end\n");
     }
 
     void IO_GEN(std::string exec_name, int patternNum, Pattern patterns[]) { 
-        pid = fork();
-        if (!pid) { // child process
+        this->pid = fork();
+        if (!this->pid) { // child process
             output_pattern(patternNum, patterns);
             if (execlp(exec_name.c_str(), exec_name.c_str(), patFilename.c_str(), 
                         relFilename.c_str(), NULL) == -1) {
@@ -74,12 +75,28 @@ public:
     }
 
     void set_executename(std::string name) {
-        exec_name = name;
+        this->exec_name = name;
     }
 
     void execute() {
-        string command = exec_name + " " + patFilename + " "+ relFilename; 
+        string command = this->exec_name + " " + this->patFilename + " "+ this->relFilename; 
         std::system(command.c_str());
+    }
+    void output_pattern2(int patternNum, Pattern patterns[]) {
+        std::fstream pattern_io;
+        pattern_io.open("test.in", std::fstream::out);
+
+        for (int i = 0; i < patternNum; i++) {
+            std::string pattern;
+            pattern += patterns[i].data[0]?"1":"0";
+            //for (int j = 1; j < this->vars->inputNum; j++){
+            for (int j = 1; j < 9; j++){
+                pattern += patterns[i].data[j]?"1":"0";
+            }
+            pattern += "\n";
+            pattern_io << pattern; 
+        }
+        pattern_io.close();
     }
 
     void output_pattern(int patternNum, Pattern patterns[]) {
@@ -87,15 +104,15 @@ public:
         std::fstream pattern_io;
         pattern_io.open(patFilename, std::fstream::out);
         pattern_io << vars->inputNum << " " << patternNum << "\n"; 
-        for (int i = 0; i < vars->inputNum-1; i++) {
-            pattern_io << vars->inputNames[i] << " ";
+        for (int i = 0; i < this->vars->inputNum-1; i++) {
+            pattern_io << this->vars->inputNames[i] << " ";
         }
-        pattern_io << vars->inputNames[vars->inputNum-1] << "\n";
+        pattern_io << this->vars->inputNames[vars->inputNum-1] << "\n";
 
         for (int i = 0; i < patternNum; i++) {
             std::string pattern;
             pattern += patterns[i].data[0]?"1":"0";
-            for (int j = 1; j < vars->inputNum; j++){
+            for (int j = 1; j < this->vars->inputNum; j++){
                 pattern += patterns[i].data[j]?" 1":" 0";
             }
             pattern += "\n";
@@ -125,7 +142,6 @@ public:
             std::getline(relation, patterns_s[i]);
             //std::cout << patterns_s[i] << std::endl;
         }
-        sleep(1);
         relation.close();
         return patternNum;
     }
@@ -133,7 +149,6 @@ public:
     void gen_patterns(int patternNum, Pattern patterns[], Pattern output_patterns[]) {
         // TODO do we need to get the input patterns?
         for (int i = 0; i < patternNum; i++) {
-            //cout << patterns_s[i] << std::endl;
             for (int j = 0; j < PI_N; j++) {
                 //cout << ((patterns_s[i][j<<1] =='1')?'1':'0');
                 patterns[i].data[j] = ((patterns_s[i][j<<1]=='1')?1:0); 
@@ -149,11 +164,11 @@ public:
     }
 
     inline int PiNum() {
-        return vars->inputNum;
+        return this->vars->inputNum;
     }
 
     inline int PoNum() {
-        return vars->outputNum;
+        return this->vars->outputNum;
     }
 
 private:
@@ -166,5 +181,4 @@ private:
     std::vector<std::string> patterns_s;
 };
 
-Agent IO;  
 #endif

@@ -1,20 +1,29 @@
 #include "pattern.hpp"
 
 Pattern::Pattern() {
-    data = 0;
+    this->data = 0;
+}
+
+Pattern::Pattern(const Pattern& p) {
+    this->data = p.data;
+    this->size = p.size; 
 }
 
 Pattern::Pattern(int s) {
-    size = s;
+    this->data = 0;
+    this->size = s;
 }
 
+Pattern::~Pattern() {
+
+}
 void Pattern::randBitset() {
-    data = rand();
+    this->data = rand();
     int len = size<<4; // divide 16 becuase each size of the 
     // random is only 16 bits in rand()
     for (int i = 0 ; i < len; i++) {
-        data <<= 16;
-        data |= bitset<maxsize>(rand());
+        this->data <<= 16;
+        this->data |= bitset<maxsize>(rand());
     }
     return ;
 }

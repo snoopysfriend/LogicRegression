@@ -51,8 +51,8 @@ void simulate_variation(int input_var, int patternNum, Pattern output_patterns[]
 void random_variation(int patternNum, Pattern output_patterns[]) {
     fprintf(stderr,"start random testing %d\n", patternNum); 
     Pattern patterns[patternNum];   
-    char filename[] = "test2.in\0";
-    FILE* fp = fopen(filename, "w+");
+    char filename[] = "test2.in";
+    FILE* fp = fopen(filename, "w");
     // initialize the pattern size
     for (int i = 0; i < patternNum; i++) {
         patterns[i].set_size(PI_N);
@@ -68,8 +68,7 @@ void random_variation(int patternNum, Pattern output_patterns[]) {
         for (int j = 0; j < PI_N; j++) {
             pattern[j] = patterns[i].data[j]?'1':'0';
         }
-        //printf("%s\n", pattern);
-        //fprintf(fp, "%s\n", pattern);
+        fprintf(fp, "%s\n", pattern);
     }
     fclose(fp);
 
@@ -196,7 +195,6 @@ void find_depend(SUP output[]){
                         make_pair(i, varietyCount[j]));
             }
         }
-
     }
 
     for (int i = 0; i < PO_N; i++) {

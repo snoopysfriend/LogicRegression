@@ -11,6 +11,7 @@
 #include "decision.hpp"
 #include "blif.cpp"
 
+
 int PI_N;
 int PO_N;
 Agent IO; 
@@ -71,6 +72,7 @@ int main (int argc, char **argv) {
     SUP output[PO_N]; 
     find_depend(output); // find the output dependency variable
 
+
     Tree FDBTS[PO_N];
     int height_limit = 27;
     for (int i = 0; i < PO_N; i++) {
@@ -91,7 +93,6 @@ int main (int argc, char **argv) {
     }
 
     print_to_blif(FDBTS, vars);
-
 
     return 0;
 }

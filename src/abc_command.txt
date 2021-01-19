@@ -1,0 +1,4 @@
+read circuit.blif
+strash
+sim -A test2.in -v 
+

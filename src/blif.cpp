@@ -9,7 +9,7 @@ void print_to_blif(Tree FBDT[], Vars* var) {
     char filename[] = "circuit.blif";
     FILE* fp = fopen(filename, "w");
     // gen the names 
-    fprintf(fp, ".models LogicRegression\n");
+    fprintf(fp, ".model LogicRegression\n");
     fprintf(fp, ".inputs");
     for (auto inputName: var->inputNames) {
         fprintf(fp, " %s", inputName.c_str());
@@ -31,8 +31,9 @@ void print_to_blif(Tree FBDT[], Vars* var) {
         int care = FBDT[i].get_care();  
         std::vector<std::vector<int>> *func = FBDT[i].get_function();
         int input_size = sups->var.size();
+        int o_size = sups->var.size();
         for (auto function: *func) {
-            char input[input_size+1];
+            char input[o_size+1];
             input[input_size] = '\0';
             for (auto lit: function) {
                 int var = lit_to_var(lit);
@@ -41,10 +42,15 @@ void print_to_blif(Tree FBDT[], Vars* var) {
                 int var_index = std::distance(sups->var.begin(), var_inset); 
                 input[var_index] = '0'+ sign;
             }
+            for (int l = 0; l < o_size; l++) {
+                if (input[l] != '0' && input[l] != '1') {
+                    input[l] = '-';
+                }
+            }
             fprintf(fp, "%s %d\n", input, care);
         }
-        fprintf(fp, ".end\n");
     }
+    fprintf(fp, ".end\n");
 
 
     fclose(fp);

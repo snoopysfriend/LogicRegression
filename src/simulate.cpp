@@ -22,6 +22,12 @@ void gen_flip_random(int bit_place, int batchNum, Pattern patterns[]) {
     }
 }
 
+void gen_random(int batchNum, Pattern patterns[]) {
+    for (int i = 0; i < batchNum; i++) {
+        patterns[i].randBitset();
+    }
+}
+
 void simulate_variation(int input_var, int patternNum, Pattern output_patterns[]) {
     fprintf(stderr,"start finding variation on variable %d\n", input_var); 
     //int batchNum = 200;
@@ -40,6 +46,38 @@ void simulate_variation(int input_var, int patternNum, Pattern output_patterns[]
     assert(s_patternNum == patternNum);
     //Pattern output_patterns[patternNum];
     IO.gen_patterns(patternNum, patterns, output_patterns);
+}
+
+void random_variation(int patternNum, Pattern output_patterns[]) {
+    fprintf(stderr,"start random testing %d\n", patternNum); 
+    Pattern patterns[patternNum];   
+    char filename[] = "test2.in\0";
+    FILE* fp = fopen(filename, "w+");
+    // initialize the pattern size
+    for (int i = 0; i < patternNum; i++) {
+        patterns[i].set_size(PI_N);
+    }
+    // generate the random patterns 
+    gen_random(patternNum, patterns);
+    IO.output_pattern(patternNum, patterns);
+    IO.execute();
+    printf("%d\n", PI_N);
+    for (int i = 0; i < patternNum; i++) {
+        char pattern[PI_N+1];
+        pattern[PI_N] = '\0';
+        for (int j = 0; j < PI_N; j++) {
+            pattern[j] = patterns[i].data[j]?'1':'0';
+        }
+        //printf("%s\n", pattern);
+        fprintf(fp, "%s\n", pattern);
+    }
+    fclose(fp);
+
+    int s_patternNum = IO.read_relation();
+    assert(s_patternNum == patternNum);
+    //Pattern output_patterns[patternNum];
+    IO.gen_patterns(patternNum, patterns, output_patterns);
+    IO.output_pattern2(patternNum, patterns);
 }
 
 /*
@@ -111,9 +149,9 @@ void simulate_depend(SUP output, node* parent){
 void find_depend(SUP output[]){
 
     fprintf(stderr,"start finding\n"); 
-    int batchNum = 1000;
+    int batchNum = 7200;
     int patternNum = batchNum * PI_N;
-    Pattern patterns[patternNum];   
+    Pattern* patterns = new Pattern[patternNum];   
     // initialize the pattern size
     for (int i = 0; i < patternNum; i++) {
         patterns[i].set_size(PI_N);
@@ -132,7 +170,7 @@ void find_depend(SUP output[]){
     fprintf(stderr, "end simulate\n");
     int s_patternNum = IO.read_relation();
     assert(s_patternNum == patternNum);
-    Pattern output_patterns[patternNum];
+    Pattern* output_patterns = new Pattern[patternNum];
     //Pattern patterns2[patternNum];   
     IO.gen_patterns(patternNum, patterns, output_patterns);
     // TODO gen pattern do not need to gen the input patterns !!!

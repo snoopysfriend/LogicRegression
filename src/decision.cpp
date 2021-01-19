@@ -119,14 +119,14 @@ void Tree::gen_flip_random(Node* n, int bit_place, int batchNum, Pattern pattern
 void Tree::simulate_variation(Node* parent){
 
     //fprintf(stderr,"start finding\n"); 
-    fprintf(stderr, "[Simulate node] with variable %c%d\n", (parent->get_value()&1)?'+':'-', 
-            (parent->get_value()));
-    fprintf(stderr, "Height %d\n", parent->get_height());
+    //fprintf(stderr, "[Simulate node] with variable %c%d\n", (parent->get_value()&1)?'+':'-', 
+     //       (parent->get_value()));
+    //fprintf(stderr, "Height %d\n", parent->get_height());
     int batchNum = 120;
     SUP* sup = parent->get_support(); 
     int varNum = sup->var.size();
-    fprintf(stderr, "simulate node with size %d\n", varNum);
-    assert(varNum > 0);
+    //fprintf(stderr, "simulate node with size %d\n", varNum);
+    //assert(varNum > 0);
     /*
     if (varNum == 0) {
         fprintf(stderr, "Do not have support should be constant\n");
@@ -240,7 +240,7 @@ void Tree::simulate_variation(Node* parent){
 
 void Tree::print() {
     printf("Onset functions\n");
-    for (auto function: onset) {
+    for (auto function: this->onset) {
         printf("(");
         for (auto v: function) {
             if (v&1) {
@@ -253,7 +253,7 @@ void Tree::print() {
     }
     printf("\n");
     printf("Offset functions\n");
-    for (auto function: offset) {
+    for (auto function: this->offset) {
         printf("(");
         for (auto v: function) {
             if (v&1) {
@@ -271,9 +271,9 @@ void Tree::gen_function(Node* node) {
     std::vector<int> function;
     node->gen_function(function);
     if (node->properties->constant == ZERO) {
-        offset.push_back(function);
+        this->offset.push_back(function);
     } else {
-        onset.push_back(function);
+        this->onset.push_back(function);
     }
 }
 
@@ -287,7 +287,7 @@ void Tree::recurse(int len, Pattern patterns[], Pattern pattern, SUP& sup) {
         return ;
     } else {
        auto iter = sup.var.begin();
-       std::advance(iter, len);
+       std::advance(iter, len-1);
        int place = *iter;
        pattern.data[place] = 0;
        recurse(len-1, patterns, pattern, sup); 
@@ -297,7 +297,7 @@ void Tree::recurse(int len, Pattern patterns[], Pattern pattern, SUP& sup) {
 }
 
 void Tree::brute_force() {
-    SUP* sup = root->get_support(); 
+    SUP* sup = this->root->get_support(); 
     int varNum = sup->var.size();
     assert(varNum > 0 && varNum < 18);
     fprintf(stderr, "[Brute Force] with output varibale %d and input size %d\n", sup->o_idx, varNum);
@@ -332,12 +332,12 @@ void Tree::brute_force() {
             function.push_back(literal(v, patterns[i].data[v]));
         }
         if (output_patterns[i].data[output_indx] == 0) {
-            offset.push_back(function);
+            this->offset.push_back(function);
         } else {
-            onset.push_back(function);
+            this->onset.push_back(function);
         }
     }
-    care = onset.size() < offset.size()? ONSET: OFFSET;
+    this->care = this->onset.size() < this->offset.size()? ONSET: OFFSET;
 }
 
 void Tree::unate_paradim(int height_limit) {
@@ -351,15 +351,17 @@ void Tree::unate_paradim(int height_limit) {
             //fprintf(stderr, "[Spanning]\n");
             parent->span(parent->properties->variation.first);
             count += 2;
-            q.push(parent->left_child());
-            q.push(parent->right_child());
+            if (parent->get_height() < height_limit) {
+                q.push(parent->left_child());
+                q.push(parent->right_child());
+            }
         } else {
-            fprintf(stderr, "leaf\n");
+            //fprintf(stderr, "leaf\n");
             gen_function(parent);
         }
-        fprintf(stderr, "node size %d\n", count);
+        //fprintf(stderr, "node size %d\n", count);
     }
-    care = onset.size() < offset.size()? ONSET: OFFSET;
+    this->care = this->onset.size() < this->offset.size()? ONSET: OFFSET;
 } 
 
 

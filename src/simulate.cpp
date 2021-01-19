@@ -61,7 +61,7 @@ void random_variation(int patternNum, Pattern output_patterns[]) {
     gen_random(patternNum, patterns);
     IO.output_pattern(patternNum, patterns);
     IO.execute();
-    printf("%d\n", PI_N);
+    //printf("%d\n", PI_N);
     for (int i = 0; i < patternNum; i++) {
         char pattern[PI_N+1];
         pattern[PI_N] = '\0';
@@ -69,7 +69,7 @@ void random_variation(int patternNum, Pattern output_patterns[]) {
             pattern[j] = patterns[i].data[j]?'1':'0';
         }
         //printf("%s\n", pattern);
-        fprintf(fp, "%s\n", pattern);
+        //fprintf(fp, "%s\n", pattern);
     }
     fclose(fp);
 

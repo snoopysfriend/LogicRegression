@@ -15,7 +15,7 @@ int PI_N;
 int PO_N;
 Agent IO; 
 
-int sec = 5;
+int sec = 3600;
 
 bool executable(const char *file) {
     struct stat st;
@@ -82,6 +82,7 @@ int main (int argc, char **argv) {
                 FDBTS[i].print();
             } else {
                 printf("var too many %d\n", output[i].var.size());
+                printf("Begin using unate paradim\n");
                 FDBTS[i].unate_paradim(height_limit);
             }
         } else {

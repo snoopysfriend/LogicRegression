@@ -61,7 +61,7 @@ Node::Node(const Node* parent, int lit) {
     int var = lit_to_var(lit);
     //fprintf(stderr, "erase %d variable from support %d\n", var, lit);
     this->sup.var.erase(var);
-    this->sup.print();
+    //this->sup.print();
 
     this->left = NULL;
     this->right = NULL;
@@ -196,7 +196,7 @@ void Tree::simulate_variation(Node* parent){
                     [](std::pair<int, int> const& a, std::pair<int, int> const& b)
                     { return  a.second > b.second;});
         parent->properties->variation = new_sup.piority[0];
-        new_sup.print();
+        //new_sup.print();
         if (sup->var.size() == 1) { // only have one child variable non need to simulate
             //int single_var = parent->properties->variation.first;
             int single_var = *(sup->var.begin());

@@ -46,8 +46,10 @@ public:
     Node();
     Node(int, SUP); // constructor of root node
     Node(const Node*, int); // constructor from parent node with value
+    Node(const Node*, SUP*, int); // constructor from parent node with value
     ~Node();
 	void span(int);
+	void add_child(int, SUP*);
     void gen_function(std::vector<int>&);
 
     inline SUP* get_support() {
@@ -76,11 +78,13 @@ public:
         return right;
     }
     Properties* properties;
+    std::vector<Node*> child;
 
 private:
     SUP sup;
-    Node* left;
-    Node* right;
+    //int childNum = 0;
+    Node* left = NULL;
+    Node* right = NULL;
 	Pattern Pmask;
 	Pattern Nmask;
 	int value;
@@ -92,18 +96,23 @@ public:
     Tree();
     void init(int Pi_Num, SUP sup);
     ~Tree();
-    void unate_paradim(int limit);
+    void unate_paradim(int limit, int minmax);
     void brute_force();
-    void recurse(int, Pattern [], Pattern, SUP&);
-    void simulate_variation(Node*);
-    void gen_flip_random(Node* node, int bit_place, int batchNum, Pattern patterns[]);
     void gen_function(Node* node);
+    void IDAS(int limit);
     void print();
     inline CARE get_care() {
         return care;
     }
     inline Node* get_root() {
         return root;
+    }
+    inline std::vector<std::vector<int>>* get_function(CARE care) {
+        if (care == ONSET) {
+            return &onset;
+        } else {
+            return &offset;
+        }
     }
     inline std::vector<std::vector<int>>* get_function() {
         if (care == ONSET) {
@@ -114,12 +123,28 @@ public:
     }
 
 private: 
+    int find_variation(Node* node, Pattern* output_patterns, Pattern* input_patterns, int start, int& patterNum);
+    int gen_simulate_pattern(Node* node, Pattern patterns[], int start);
+    void simulate_variation(Node*, int minmax);
+    void gen_flip_random(Node* node, int bit_place, int batchNum, Pattern patterns[]);
+    void recurse(int, Pattern [], Pattern, SUP&);
+
     std::vector<std::vector<int>> onset;
     std::vector<std::vector<int>> offset;
     Node* root;
     CARE care;
 	int count;
 	int height;
+};
+
+class Forest{
+public:
+    Forest(Tree*, int, SUP);
+    void MiniMax(int);
+    void merge();
+private:
+    Tree* MaxTree;
+    Tree MinTree;
 };
 
 #endif

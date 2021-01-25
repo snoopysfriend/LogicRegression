@@ -37,6 +37,7 @@ void sigroutine(int signo) {
 
 int main (int argc, char **argv) {
 
+    srand(time(NULL));
     if (argc < 4) {
         fprintf(stderr, "Usage: ./lrg <io_info.txt> <iogen> <circuit.v>\n");
         exit(-1);
@@ -87,7 +88,16 @@ int main (int argc, char **argv) {
             } else {
                 printf("var too many %d\n", output[i].var.size());
                 printf("Begin using unate paradim\n");
-                FDBTS[i].unate_paradim(height_limit);
+                if (output[i].var.size() >  30) {
+                    fprintf(stderr, "large tree!!! We need a forest\n");
+                    //Forest forest(&FDBTS[i], PI_N, output[i]);
+                    //forest.MiniMax(20);
+                    //forest.merge();
+                    FDBTS[i].IDAS(height_limit);
+                } else {
+                    FDBTS[i].IDAS(height_limit);
+                    //FDBTS[i].unate_paradim(height_limit, 1);
+                }
             }
         } else {
             FDBTS[i].init(PI_N, output[i]);

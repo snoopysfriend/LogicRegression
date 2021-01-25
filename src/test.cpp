@@ -44,6 +44,7 @@ double accurate(int PatterNum, Pattern answer[], Pattern predicts[]) {
 
 int main (int argc, char **argv) {
 
+    srand(time(NULL));
     if (argc < 4) {
         fprintf(stderr, "Usage: ./test <io_info.txt> <iogen> <circuit.v> \n");
         exit(-1);

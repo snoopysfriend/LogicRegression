@@ -30,6 +30,7 @@ double accurate(int PatterNum, Pattern answer[], Pattern predicts[]) {
         int flag = 1;
         for (int j = 0; j < PO_N; j++) {
             if (answer[i].data[j] != predicts[i].data[j]){
+                printf("wrong on output %d\n", j);
                 flag = 0; 
             }
         }

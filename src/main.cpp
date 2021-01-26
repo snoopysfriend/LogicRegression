@@ -90,12 +90,12 @@ int main (int argc, char **argv) {
                 printf("Begin using unate paradim\n");
                 if (output[i].var.size() >  30) {
                     fprintf(stderr, "large tree!!! We need a forest\n");
-                    //Forest forest(&FDBTS[i], PI_N, output[i]);
-                    //forest.MiniMax(20);
+                    Forest forest(&FDBTS[i], PI_N, output[i]);
+                    forest.MiniMax(20);
                     //forest.merge();
-                    FDBTS[i].IDAS(height_limit);
+                    //FDBTS[i].IDAS(height_limit);
                 } else {
-                    FDBTS[i].IDAS(height_limit);
+                    FDBTS[i].IDAS(height_limit, true);
                     //FDBTS[i].unate_paradim(height_limit, 1);
                 }
             }

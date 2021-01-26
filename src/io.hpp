@@ -149,10 +149,10 @@ public:
     void gen_patterns(int patternNum, Pattern patterns[], Pattern output_patterns[]) {
         // TODO do we need to get the input patterns?
         for (int i = 0; i < patternNum; i++) {
-            for (int j = 0; j < PI_N; j++) {
+            /*for (int j = 0; j < PI_N; j++) {
                 //cout << ((patterns_s[i][j<<1] =='1')?'1':'0');
                 patterns[i].data[j] = ((patterns_s[i][j<<1]=='1')?1:0); 
-            }
+            }*/
             //cout << std::endl;
             //std::cout << patterns[i].data.to_string() << std::endl;
             output_patterns[i].set_size(PO_N);

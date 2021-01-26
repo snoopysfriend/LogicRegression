@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <queue>
 #include <assert.h>
+#include <unordered_map>
 
 
 #include "decision.hpp"
@@ -12,8 +13,9 @@
 #include "variable.hpp"
 #include "support.hpp"
 #include "io.hpp" 
+#include "hash.hpp"
 
-#define batchSize  360
+#define batchSize  240
 // TODO varcount from 0 change from 2 and 1
 // TODO Tree need to store functions 
 // Tree need to store onset or offset
@@ -31,9 +33,9 @@ void Node::span(int value) {
     return ;
 } 
 
-void Node::add_child(int value, SUP* sup) {
-    this->child.push_back(new Node(this, sup, literal(value, true))); 
-    this->child.push_back(new Node(this, sup, literal(value, false))); 
+
+void Node::add_child(Node* node) {
+    this->child.push_back(node);
 }
 
 
@@ -44,7 +46,7 @@ Node::Node() {
 Node::~Node() {
     if (this->left) delete this->left; 
     if (this->right) delete this->right; 
-    delete this->properties;
+    //delete this->properties;
 }
 
 Node::Node(int pi_n, SUP s) {
@@ -65,7 +67,9 @@ Node::Node(const Node* parent, SUP* new_sup, int lit) {
     this->value = lit;
     this->sup = *new_sup;
     int var = lit_to_var(lit);
+    //printf("remove %d\n", lit);
     this->sup.var.erase(var);
+    //this->sup.print();
 
     this->left = NULL;
     this->right = NULL;
@@ -174,7 +178,7 @@ int min(int a, int b) {
     return a<b?a:b;
 }
 
-int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns, int start, int& patternNum) {
+int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns, int start, int& patternNum, int minimax) {
 
     int batchNum = batchSize;
     SUP* sup = node->get_support(); 
@@ -208,10 +212,17 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
         node->properties->constant = (output_patterns[start].data[output_indx]==0)?ZERO: ONE;
     } else {
         node->properties = new Properties(Variation);
-        sort(new_sup.piority.begin(), new_sup.piority.end(), 
-                    [](std::pair<int, int> const& a, std::pair<int, int> const& b)
-                    { return  a.second > b.second;});
-        node->properties->variation = new_sup.piority[0];
+        if (minimax) {
+            sort(new_sup.piority.begin(), new_sup.piority.end(), 
+                        [](std::pair<int, int> const& a, std::pair<int, int> const& b)
+                        { return  a.second > b.second;});
+            node->properties->variation = new_sup.piority[0];
+        } else {
+            sort(new_sup.piority.begin(), new_sup.piority.end(), 
+                        [](std::pair<int, int> const& a, std::pair<int, int> const& b)
+                        { return  a.second > b.second;});
+            node->properties->variation = new_sup.piority[0];
+        }
 
         if (sup->var.size() == 1) { // only have one child variable non need to simulate
             int single_var = *(sup->var.begin());
@@ -241,13 +252,21 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
             this->count += 2;
         } else {
             //int size = new_sup.var.size();
-            int size = sup->var.size();
-            for (int i = 0; i < min(1, size); i++) {
-                //node->add_child(new_sup.piority[i].first, &new_sup);
-                node->add_child(new_sup.piority[i].first, sup);
-                this->count += 2;
-                //patternNum += batchNum * 2 * (size-1);
-                patternNum += batchNum * 2 * (size-1);
+            int size = new_sup.var.size();
+            int support_size = sup->var.size();
+            for (int i = 0; i < 1; i++) {
+                int child_num = this->Add_child(node, new_sup.piority[i].first, sup); 
+                if (child_num > 0) {
+                    this->count += child_num;
+                    patternNum += batchNum * 2 * (support_size-1);
+                    //this->count += 2;
+                }
+                /*child_num = this->Add_child(node, new_sup.piority[size-1].first, sup); 
+                if (child_num > 0) {
+                    this->count += child_num;
+                    patternNum += batchNum * 2 * (support_size-1);
+                    this->count += 2;
+                }*/
             }
         }
     }
@@ -255,6 +274,25 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
     
     return start + batchNum * varNum;
 }
+
+int Tree::Add_child(Node* node, int var, SUP* sup) {
+
+    Node* pos = new Node(node, sup, literal(var, true)); 
+    if (this->sup_table.find(pos) != sup_table.end()) { // exists 
+        //printf("find before\n");
+        //assert(false);
+        delete pos;
+        return 0;
+    } 
+    node->add_child(pos);
+    sup_table[pos] = true;
+    Node* neg = new Node(node, sup, literal(var, false)); 
+    node->add_child(neg);
+    sup_table[neg] = true;
+    
+    return 2;
+}
+
 
 void Tree::simulate_variation(Node* parent, int minmax) {
 
@@ -491,9 +529,10 @@ void Tree::unate_paradim(int height_limit, int minmax) {
     this->care = this->onset.size() < this->offset.size()? ONSET: OFFSET;
 } 
 
-void Tree::IDAS(int height_limit) {
+void Tree::IDAS(int height_limit, int minmax) {
     //std::queue<Node*> q;
     //q.push(this->root);
+    unordered_map<SUP, bool, supportHash> sup_table; 
     printf("begin using IDAS\n");
     int max_height = 0;
     vector<Node*> layer;
@@ -504,14 +543,15 @@ void Tree::IDAS(int height_limit) {
             break; 
         }
         Pattern* patterns = new Pattern[patternNum]; // gen the output pattern
-        fprintf(stderr,"IDAS with pattern %d\n", patternNum);
         int start = 0;
         for (auto node: layer) {
             start = gen_simulate_pattern(node, patterns, start);
         } 
+        fprintf(stderr,"IDAS with pattern %d\n", patternNum);
         // IO simulate it 
         IO.output_pattern(patternNum, patterns); // output the pattern to the file
         IO.execute(); // use iogen to read the file to gen the pattern
+        fprintf(stderr, "end simulate\n");
 
         int s_patternNum = IO.read_relation();
         assert(s_patternNum == patternNum);
@@ -519,11 +559,12 @@ void Tree::IDAS(int height_limit) {
         IO.gen_patterns(patternNum, patterns, output_patterns);
 
         vector<Node*> next_layer;
+        next_layer.clear();
         start = 0;
         int old_num = patternNum;
         patternNum = 0;
         for (auto node: layer) {
-            start = find_variation(node, output_patterns, patterns, start, patternNum);
+            start = find_variation(node, output_patterns, patterns, start, patternNum, minmax);
 
             if (node->properties->type == Constant) {
                 gen_function(node);
@@ -538,7 +579,10 @@ void Tree::IDAS(int height_limit) {
             }
         }
         //fprintf(stderr, "%d start\n", start);
-        assert(start == old_num);
+        if (start != old_num) {
+            fprintf(stderr, "%d %d\n", start, old_num);
+            assert(start == old_num);
+        }
 
         delete[] patterns;
         delete[] output_patterns;
@@ -570,9 +614,9 @@ void Forest::MiniMax(int height_limit) {
     int max_height_limit = 22;
     int min_height_limit = 20;
     printf("begin on the max tree\n");
-    MaxTree->unate_paradim(max_height_limit, 1);
+    MaxTree->IDAS(max_height_limit, 1);
     printf("begin on the min tree\n");
-    MinTree.unate_paradim(min_height_limit, 0);
+    MinTree.IDAS(min_height_limit, 0);
     merge();
 }
 

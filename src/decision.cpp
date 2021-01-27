@@ -223,9 +223,9 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
                         { return  a.second > b.second;});
             node->properties->variation = new_sup.piority[0];
         }
-
-        if (sup->var.size() == 1) { // only have one child variable non need to simulate
-            int single_var = *(sup->var.begin());
+        //TODO change this to sup?  
+        if (new_sup.var.size() == 1) { // only have one child variable non need to simulate
+            int single_var = *(new_sup.var.begin());
             node->span(single_var);
             int index = 0;
             /*for (auto v: sup->var) {
@@ -253,9 +253,10 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
         } else {
             //int size = new_sup.var.size();
             int size = new_sup.var.size();
-            int support_size = sup->var.size();
+            //int support_size = sup->var.size();
+            int support_size = new_sup.var.size();
             for (int i = 0; i < 1; i++) {
-                int child_num = this->Add_child(node, new_sup.piority[i].first, sup); 
+                int child_num = this->Add_child(node, new_sup.piority[i].first, &new_sup); 
                 if (child_num > 0) {
                     this->count += child_num;
                     patternNum += batchNum * 2 * (support_size-1);

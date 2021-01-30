@@ -27,10 +27,13 @@ public:
     ~Tree();
     int Add_child(Node*, int, SUP*);
     void unate_paradim(int limit, int minmax);
-    void brute_force();
+    void brute_force(SUP*);
+    void brute_force2(Node*);
     void gen_function(Node* node);
     void IDAS(int limit, int);
     void print();
+    void sp_flip(Node*);
+    void gen_pattern(SUP*, unordered_map<vector<int>, bool, Hash, equal_f>*, int&);
     inline CARE get_care() {
         return care;
     }

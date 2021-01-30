@@ -78,12 +78,30 @@ int main (int argc, char **argv) {
 
     Tree FDBTS[PO_N];
     int height_limit = 30;
+#ifdef SFLIP
+    for (int i = 0; i < PO_N; i++) {
+        FDBTS[i].init(PI_N, output[i]);
+        if (output[i].var.size() > 0) {
+            if (output[i].var.size() > 20) {
+                FDBTS[i].sp_flip(FDBTS[i].get_root());
+            } else {
+                SUP* sup = FDBTS[i].get_root()->get_support();
+                FDBTS[i].brute_force(sup);
+            }
+        }
+        else {
+            printf("constant node %d\n", output[i].var.size());
+        }
+    }
+    print_to_blif(argv[3], FDBTS, vars);
+#else
     for (int i = 0; i < PO_N; i++) {
         if (output[i].var.size() > 0) {
             fprintf(stderr, "var size %d\n", output[i].var.size());
             FDBTS[i].init(PI_N, output[i]);
             if (output[i].var.size() < 18) {
-                FDBTS[i].brute_force();
+                SUP* sup = FDBTS[i].get_root()->get_support();
+                FDBTS[i].brute_force(sup);
                 FDBTS[i].print();
             } else {
                 printf("var too many %d\n", output[i].var.size());
@@ -92,10 +110,14 @@ int main (int argc, char **argv) {
                     fprintf(stderr, "large tree!!! We need a forest\n");
                     Forest forest(&FDBTS[i], PI_N, output[i]);
                     forest.MiniMax(20);
-                    //forest.merge();
+                    forest.merge();
                     //FDBTS[i].IDAS(height_limit);
+                    //FDBTS[i].IDAS(height_limit, true);
                 } else {
-                    FDBTS[i].IDAS(height_limit, true);
+                    Forest forest(&FDBTS[i], PI_N, output[i]);
+                    forest.MiniMax(20);
+                    forest.merge();
+                    //FDBTS[i].IDAS(height_limit, true);
                     //FDBTS[i].unate_paradim(height_limit, 1);
                 }
             }
@@ -104,8 +126,10 @@ int main (int argc, char **argv) {
             printf("constant node %d\n", output[i].var.size());
         }
     }
+    print_to_blif(argv[3], FDBTS, vars);
 
-    print_to_blif(FDBTS, vars);
+#endif
+
 
     return 0;
 }

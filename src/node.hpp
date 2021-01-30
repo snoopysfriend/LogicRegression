@@ -6,7 +6,8 @@
 
 typedef enum  {
     OFFSET,
-    ONSET
+    ONSET,
+    BI
 } CARE;
 
 typedef enum {
@@ -68,16 +69,16 @@ public:
     }
     Properties* properties;
     std::vector<Node*> child;
+	Pattern Pmask;
+	Pattern Nmask;
+    int height;
 
 private:
     SUP sup;
     //int childNum = 0;
     Node* left = NULL;
     Node* right = NULL;
-	Pattern Pmask;
-	Pattern Nmask;
 	int value;
-    int height;
 };
 
 #endif

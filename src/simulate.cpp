@@ -15,8 +15,33 @@ extern int PI_N;
 
 void gen_flip_random(int bit_place, int batchNum, Pattern patterns[]) {
     assert(batchNum%2 == 0); // is 2's multiple
-    for (int i = 0; i < batchNum; i+=2) {
+    for (int i = 0; i < batchNum/2; i+=2) {
         patterns[i].randBitset(); 
+        patterns[i+1].data = patterns[i].data;
+        patterns[i].data[bit_place].flip();
+    }
+    int pos = batchNum/2 + batchNum/4;
+    Pattern tmp;
+    tmp.set_size(128);
+    for (int i = batchNum/2; i < pos; i+=2) {
+        patterns[i].randBitset(); 
+        tmp.randBitset();
+        patterns[i].data |= tmp.data;
+        tmp.randBitset();
+        patterns[i].data |= tmp.data;
+        tmp.randBitset();
+        patterns[i].data |= tmp.data;
+        patterns[i+1].data = patterns[i].data;
+        patterns[i].data[bit_place].flip();
+    }
+    for (int i = pos; i < batchNum; i+=2) {
+        patterns[i].randBitset(); 
+        tmp.randBitset();
+        patterns[i].data &= tmp.data;
+        tmp.randBitset();
+        patterns[i].data &= tmp.data;
+        tmp.randBitset();
+        patterns[i].data &= tmp.data;
         patterns[i+1].data = patterns[i].data;
         patterns[i].data[bit_place].flip();
     }

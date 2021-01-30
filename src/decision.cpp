@@ -148,7 +148,10 @@ void Tree::gen_flip_random(Node* n, int bit_place, int batchNum, Pattern pattern
 }
 
 int Tree::gen_simulate_pattern(Node* node, Pattern patterns[], int start) {
+
     int batchNum = batchSize;
+    int posNum = batchNum/4; 
+    int negNum = batchNum/4; 
     SUP* sup = node->get_support(); 
     int varNum = sup->var.size();
     assert(varNum > 0);
@@ -162,12 +165,39 @@ int Tree::gen_simulate_pattern(Node* node, Pattern patterns[], int start) {
     // generate the random patterns 
     int idx = 0;
     for (auto var: sup->var) {
-        for (int i = start + idx*batchNum; i < start + (idx+1)*batchNum; i+=2) {
+        int ii = start + idx*batchNum + batchNum/2;
+        for (int i = start + idx*batchNum; i < ii; i+=2) {
             patterns[i].randBitset(); 
             patterns[i].data |= node->get_mask(true).data;
             patterns[i].data &= node->get_mask(false).data;
             patterns[i+1].data = patterns[i].data;
             patterns[i].data[var].flip();
+        }
+        for (int j = 0; j < posNum; j+=2) {
+            Pattern pos;
+            pos.set_size(PI_N);
+            pos.randBitset(); 
+            patterns[ii+j].randBitset(); 
+            patterns[ii+j].data |= pos.data;  
+            patterns[ii+j].randBitset(); 
+            patterns[ii+j].data |= pos.data;  
+            patterns[ii+j].data |= node->get_mask(true).data;
+            patterns[ii+j].data &= node->get_mask(false).data;
+            patterns[ii+j+1].data = patterns[ii+j].data;
+            patterns[ii+j].data[var].flip();
+        }
+        for (int j = posNum; j < posNum+negNum; j+=2) {
+            Pattern neg;
+            neg.set_size(PI_N);
+            neg.randBitset(); 
+            patterns[ii+j].randBitset(); 
+            patterns[ii+j].data &= neg.data;  
+            patterns[ii+j].randBitset(); 
+            patterns[ii+j].data &= neg.data;  
+            patterns[ii+j].data |= node->get_mask(true).data;
+            patterns[ii+j].data &= node->get_mask(false).data;
+            patterns[ii+j+1].data = patterns[ii+j].data;
+            patterns[ii+j].data[var].flip();
         }
         idx++;
     }
@@ -220,7 +250,7 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
         } else {
             sort(new_sup.piority.begin(), new_sup.piority.end(), 
                         [](std::pair<int, int> const& a, std::pair<int, int> const& b)
-                        { return  a.second > b.second;});
+                        { return  a.second < b.second;});
             node->properties->variation = new_sup.piority[0];
         }
         //TODO change this to sup?  
@@ -251,10 +281,44 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
             }
             this->count += 2;
         } else {
+#ifdef FOREST
             //int size = new_sup.var.size();
+            assert(false);
             int size = new_sup.var.size();
             //int support_size = sup->var.size();
             int support_size = new_sup.var.size();
+            if (node->get_height() == 0) {
+                for (int i = 0; i < size; i++) {
+                    SUP tmp = new_sup;
+                    tmp.var.erase(new_sup.piority[i].first);
+                    int child_num = this->Add_child(node, new_sup.piority[i].first, &tmp); 
+                    if (child_num > 0) {
+                        this->count += child_num;
+                        patternNum += batchNum * 2 * (support_size-1);
+                    }
+                }
+            } else {
+                int child_num = this->Add_child(node, new_sup.piority[0].first, &new_sup); 
+                if (child_num > 0) {
+                    this->count += child_num;
+                    patternNum += batchNum * 2 * (support_size-1);
+                    //this->count += 2;
+                }
+            }
+#elif TREE
+            int size = new_sup.var.size();
+            //int size = sup->var.size();
+            int support_size = new_sup.var.size();
+            //support_size = size;
+            //int child_num = this->Add_child(node, new_sup.piority[0].first, &new_sup); 
+            int child_num = this->Add_child(node, new_sup.piority[0].first, &new_sup); 
+            if (child_num > 0) {
+                this->count += child_num;
+                patternNum += batchNum * 2 * (support_size-1);
+            }
+
+#endif
+            /*
             for (int i = 0; i < 1; i++) {
                 int child_num = this->Add_child(node, new_sup.piority[i].first, &new_sup); 
                 if (child_num > 0) {
@@ -262,13 +326,13 @@ int Tree::find_variation(Node* node, Pattern* output_patterns, Pattern* patterns
                     patternNum += batchNum * 2 * (support_size-1);
                     //this->count += 2;
                 }
-                /*child_num = this->Add_child(node, new_sup.piority[size-1].first, sup); 
+                child_num = this->Add_child(node, new_sup.piority[size-1].first, sup); 
                 if (child_num > 0) {
                     this->count += child_num;
                     patternNum += batchNum * 2 * (support_size-1);
                     this->count += 2;
-                }*/
-            }
+                }
+            }*/
         }
     }
     //fprintf(stderr, "patternNum %d\n", patternNum);
@@ -458,8 +522,52 @@ void Tree::recurse(int len, Pattern patterns[], Pattern pattern, SUP& sup) {
     }
 }
 
-void Tree::brute_force() {
-    SUP* sup = this->root->get_support(); 
+void Tree::brute_force2(Node* node) {
+    SUP* sup = node->get_support();
+    int varNum = sup->var.size();
+    assert(varNum > 0 && varNum < 18);
+    //fprintf(stderr, "[Brute Force] with output varibale %d and input size %d\n", sup->o_idx, varNum);
+
+    int patternNum = 1<<varNum;
+    idx = 0;
+    Pattern patterns[patternNum];
+    Pattern pattern;
+    pattern.set_size(PI_N);
+    pattern.data = 0;
+    recurse(varNum, patterns, pattern, *sup);
+    Pattern POS = node->Pmask;
+    Pattern NEG = node->Nmask;
+    for (int i = 0; i < patternNum; i++) {
+        patterns[i].data |= POS.data;
+        patterns[i].data &= NEG.data;
+    }
+    // initialize the pattern size
+    // generate all the patterns 
+    assert(idx== patternNum);
+
+    IO.output_pattern(patternNum, patterns);
+    IO.execute();
+    int s_patternNum = IO.read_relation();
+    assert(s_patternNum == patternNum);
+    Pattern output_patterns[patternNum];
+    IO.gen_patterns(patternNum, patterns, output_patterns);
+
+    int output_indx = sup->o_idx;
+    for (int i = 0; i < patternNum; i++) {
+        std::vector<int> function;
+        for (auto v: sup->var) {
+            function.push_back(literal(v, patterns[i].data[v]));
+        }
+        if (output_patterns[i].data[output_indx] == 0) {
+            this->offset.push_back(function);
+        } else {
+            this->onset.push_back(function);
+        }
+    }
+    this->care = this->onset.size() < this->offset.size()? ONSET: OFFSET;
+}
+
+void Tree::brute_force(SUP* sup) {
     int varNum = sup->var.size();
     assert(varNum > 0 && varNum < 18);
     fprintf(stderr, "[Brute Force] with output varibale %d and input size %d\n", sup->o_idx, varNum);
@@ -557,6 +665,7 @@ void Tree::IDAS(int height_limit, int minmax) {
         int s_patternNum = IO.read_relation();
         assert(s_patternNum == patternNum);
         Pattern* output_patterns = new Pattern[patternNum];
+        //exit(-1);
         IO.gen_patterns(patternNum, patterns, output_patterns);
 
         vector<Node*> next_layer;
@@ -594,6 +703,297 @@ void Tree::IDAS(int height_limit, int minmax) {
     this->care = this->onset.size() < this->offset.size()? ONSET: OFFSET;
 
 
+}
+
+int literal2(int index, bool sign) {
+    return (index<<1) + sign;
+}
+
+void find_depend2(SUP* output, Pattern POS, Pattern NEG){
+
+    fprintf(stderr,"start finding\n"); 
+    int batchNum = 360;
+    int patternNum = batchNum * PI_N;
+    Pattern* patterns = new Pattern[patternNum];   
+    // initialize the pattern size
+    for (int i = 0; i < patternNum; i++) {
+        patterns[i].set_size(PI_N);
+    }
+    // generate the random patterns 
+    for (int i = 0; i < PI_N; i++) {
+        for (int j = 0; j < batchNum; j+=2) {
+            patterns[j+i*batchNum].randBitset();
+            patterns[j+i*batchNum+1].data = patterns[j+i*batchNum].data;
+            patterns[j+i*batchNum].data[i].flip();
+            patterns[j+i*batchNum].data |= POS.data;
+            patterns[j+i*batchNum].data &= NEG.data;
+            patterns[j+i*batchNum+1].data |= POS.data;
+            patterns[j+i*batchNum+1].data &= NEG.data;
+        }
+    }
+    IO.output_pattern(patternNum, patterns);
+    IO.execute();
+    
+    int s_patternNum = IO.read_relation();
+    assert(s_patternNum == patternNum);
+    Pattern* output_patterns = new Pattern[patternNum];
+    //Pattern patterns2[patternNum];   
+    IO.gen_patterns(patternNum, patterns, output_patterns);
+    // TODO gen pattern do not need to gen the input patterns !!!
+    
+    //assert(patterns[0].data == patterns2[0].data);
+    int o_idx = output->o_idx;
+    for (int i = 0; i < PI_N; i++) {
+        int varietyCount = 0;
+        //memset(varietyCount, 0, sizeof(varietyCount));
+
+        Pattern pattern;
+        for (int j = 0; j < batchNum; j+=2) {
+            pattern.data = output_patterns[j+i*batchNum].data 
+                ^ output_patterns[j+i*batchNum+1].data;
+
+            varietyCount += pattern.data[o_idx];
+        }
+        if (varietyCount > 0) {
+            output->var.insert(i);
+        }
+    }
+
+        // sort the input variety count 
+    /*sort(output->piority.begin(), output->piority.end(), 
+            [](std::pair<int, int> const& a, std::pair<int, int> const& b)
+            { return  a.second > b.second;});*/
+
+    //output->print();
+    if (output->var.size() == 0) {
+        output->constant = output_patterns->data[o_idx]?1:0;
+    }
+    return ;
+}
+void gen_pattern2(SUP* sup, unordered_map<vector<int>, bool, Hash, equal_f>* table, int& function_num, std::vector<std::vector<int>>& func) {
+    std::vector<int> function;
+    int output_idx = sup->o_idx;
+    int batchNum = 720;
+    int varNum = sup->var.size()+1;
+    int patternNum = batchNum * (varNum);
+
+    Pattern* patterns = new Pattern[patternNum];
+
+    Pattern pattern;
+    pattern.set_size(PI_N);
+    for (int i = 0; i < batchNum; i++) {
+        pattern.set_size(PI_N);
+        patterns[i*varNum].randBitset();
+        int index = 1;
+        for (auto var: sup->var) {
+            patterns[i*varNum + index] = patterns[i*varNum];    
+            patterns[i*varNum + index].data[var].flip();    
+            index++;
+        }
+    }
+
+    IO.output_pattern(patternNum, patterns);
+    IO.execute();
+    Pattern* output_pattern = new Pattern[patternNum];
+    int s_patternNum = IO.read_relation();
+    assert(s_patternNum == patternNum);
+    IO.gen_patterns(patternNum, patterns, output_pattern);
+    int repeat = 0;
+    for (int i = 0; i < batchNum; i++) {
+        std::vector<int> tmp_function;
+        if (output_pattern[i*varNum].data[output_idx] == 1) {
+            int index = 1;
+            for (auto var: sup->var) {
+                if (output_pattern[i*varNum + index].data[output_idx] == 0) {
+                    tmp_function.push_back(literal2(var, patterns[i*varNum].data[var]));
+                }
+                index++;
+            }
+            if (tmp_function.size() > 0) {
+                if (table->find(tmp_function) == table->end()) {
+                    table->insert(std::make_pair(tmp_function, true));
+                    func.push_back(tmp_function);
+                    //this->onset.push_back(tmp_function);
+                    function_num++; 
+                } else {
+                    repeat++;
+                }
+            }
+        } else {
+            int index = 1;
+            for (auto var: sup->var) {
+                if (output_pattern[i*varNum + index].data[output_idx] == 1) {
+                    tmp_function.push_back(literal2(var, patterns[i*varNum].data[var]));
+                }
+                index++;
+            }
+            /*if (tmp_function.size() > 10) {
+                SUP* sup = this->root->get_support();
+                if (table->find(tmp_function) == table->end()) {
+                    table->insert(std::make_pair(tmp_function, true));
+                    //this->offset.push_back(tmp_function);
+                    function_num++; 
+                } 
+            }*/
+        }
+    }
+    delete [] patterns;
+    delete [] output_pattern;
+    printf("found %d\n", function_num);
+}
+
+struct GROUP{
+    GROUP() {
+    }
+    void insert(std::vector<int> pat) {
+        for (int i = 0; i < PI_N; i++) {
+            if (pat[i] == 0) {
+                num[i]--; 
+                if (num[i] < 0) {
+                    avg[i] = 0;
+                }
+            } else if (pat[i] == 1){
+                num[i]++; 
+                if (num[i] > 0) {
+                    avg[i] = 1;
+                }
+            }
+        }
+    }
+    std::vector<int> avg;
+    std::vector<int> num;
+};
+
+int Dis(std::vector<int> a, std::vector<int> b) {
+    int dis = 0;
+    for (int i = 0; i < PI_N; i++) {
+        if (a[i] != b[i]){
+            dis++;
+        }
+    }
+    return dis;
+}
+
+void func2pat(std::vector<int>& func, std::vector<int>& pat){
+    for (auto var: func) {
+        pat[var>>1] = var&1;
+    }
+}
+
+void Tree::sp_flip(Node* node) {
+
+    SUP* sup = node->get_support();
+    unordered_map<vector<int>, bool, Hash, equal_f> table;
+    int function_num = 0;
+    int o_idx = sup->o_idx;
+    std::vector<std::vector<int>> funcs;
+    for (int i = 0; i < 2; i++) {
+        printf("output var %d simulate %d\n", o_idx, i);
+        int old = function_num;
+        gen_pattern2(sup, &table, function_num, funcs);
+        if ((function_num - old) < 10) {
+            break;
+        }
+    }
+    sort(funcs.begin(), funcs.end(), [](std::vector<int> const& a, std::vector<int> const& b){
+        int s1 = a.size();
+        int s2 = b.size();
+        return s1>s2; 
+    });
+    int limit = 200/(node->height+1);
+    int top = min((funcs.size()*2)/5, limit);
+    std::vector<std::vector<int>> func; 
+    for (int i = 0; i < top; i++) {
+        func.push_back(funcs[i]);
+    }
+
+    sort(func.begin(), func.end(), [](std::vector<int> const& a, std::vector<int> const& b){
+            int s1 = a.size();
+            int s2 = b.size();
+            for (int i = 0; i < min(s1, s2); i++) {
+                if (a[i] == b[i]) {
+                    continue;
+                }
+                return a[i] > b[i];
+            }
+            return true;
+         });
+    int onset_size = func.size();
+    std::vector<GROUP> group;
+    for (int i = 0; i < onset_size; i++) {
+        std::vector<int> pat(PI_N, 2);
+        func2pat(func[i], pat);
+        int flag = 1;
+        for (int i = 0; i < group.size(); i++) {
+            std::vector<int>* old = &group[i].avg;
+            if (Dis(pat, *old) < 8) {
+                group[i].insert(pat);
+                flag = 0;
+                break;
+            } 
+        }
+        if (flag) {
+            GROUP tmp;
+            tmp.avg = pat;
+            tmp.num.assign(PI_N, 0);
+            tmp.insert(pat);
+            group.push_back(tmp);
+        }
+    }
+    printf("var %d depth %d group size %d\n", o_idx, node->get_height(), group.size());
+    for (int i = 0; i < group.size(); i++) {
+        SUP new_sup;
+        new_sup.set_idx(this->root->get_support()->o_idx);
+        Pattern POS(PI_N);
+        Pattern NEG(PI_N);
+        NEG.data.set();
+        for (int var = 0; var < PI_N; var++) {
+            if (group[i].avg[var] == 1) {
+                POS.data[var] = 1;
+            } else if (group[i].avg[var] == 0){
+                NEG.data[var] = 0;
+            }
+        }
+        POS.data |= node->Pmask.data; 
+        NEG.data &= node->Nmask.data;
+        find_depend2(&new_sup, POS, NEG);
+        if (new_sup.var.size() == 0) {
+            vector<int> cube;
+            for (int var = 0; var < PI_N; var++) {
+                if (group[i].avg[var] == 1) {
+                    cube.push_back((var<<1)+1);
+                } else if (group[i].avg[var] == 0){
+                    cube.push_back(var<<1);
+                }
+            }
+            this->onset.push_back(cube);
+        } else {
+            Node* child = new Node(PI_N, new_sup); 
+            child->Pmask = POS;
+            child->Nmask = NEG;
+            child->height = node->height+1;
+            node->add_child(child);
+            if (new_sup.var.size() >= 18) {
+                int fix = 0;
+                for (int j = 0; j < PI_N; j++) {
+                    if (child->Pmask.data[j] == 1) {
+                        fix++;
+                    } else if (child->Nmask.data[j] == 0) {
+                        fix++;
+                    }
+                }
+                printf("fix %d\n", fix);
+                sp_flip(child);
+            } else {
+                //brute_force2(&new_sup);
+                //brute_force2(node->child[0]);
+                brute_force2(child);
+            }
+        }
+        //new_sup.print();
+    }
+    this->care = ONSET;
+    //this->care = BI;
 }
 
 Forest::Forest(Tree* tree, int pn, SUP sup) {

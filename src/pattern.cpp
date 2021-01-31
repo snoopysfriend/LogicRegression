@@ -19,7 +19,7 @@ Pattern::~Pattern() {
 }
 void Pattern::randBitset() {
     this->data = rand();
-    int len = size<<4; // divide 16 becuase each size of the 
+    int len = size>>4; // divide 16 becuase each size of the 
     // random is only 16 bits in rand()
     for (int i = 0 ; i < len; i++) {
         this->data <<= 16;

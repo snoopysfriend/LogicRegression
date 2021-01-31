@@ -81,15 +81,22 @@ int main (int argc, char **argv) {
 #ifdef SFLIP
     for (int i = 0; i < PO_N; i++) {
         FDBTS[i].init(PI_N, output[i]);
+        if (i >= PO_N ) {
+            continue;
+        }
         if (output[i].var.size() > 0) {
-            if (output[i].var.size() > 20) {
-                FDBTS[i].sp_flip(FDBTS[i].get_root());
+            fprintf(stderr, "output %d var size %d\n", i, output[i].var.size());
+            if (output[i].var.size() > 18) {
+                FDBTS[i].SPFLIP(FDBTS[i].get_root());
+                //FDBTS[i].sp_flip(FDBTS[i].get_root());
             } else {
                 SUP* sup = FDBTS[i].get_root()->get_support();
+                sup->print();
                 FDBTS[i].brute_force(sup);
             }
         }
         else {
+            FDBTS[i].init(PI_N, output[i]);
             printf("constant node %d\n", output[i].var.size());
         }
     }

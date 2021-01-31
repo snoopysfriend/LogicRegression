@@ -33,6 +33,8 @@ public:
     void IDAS(int limit, int);
     void print();
     void sp_flip(Node*);
+    void sp_flip2(Node*);
+    void SPFLIP(Node*);
     void gen_pattern(SUP*, unordered_map<vector<int>, bool, Hash, equal_f>*, int&);
     inline CARE get_care() {
         return care;

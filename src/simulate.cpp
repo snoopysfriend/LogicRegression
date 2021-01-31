@@ -15,11 +15,12 @@ extern int PI_N;
 
 void gen_flip_random(int bit_place, int batchNum, Pattern patterns[]) {
     assert(batchNum%2 == 0); // is 2's multiple
-    for (int i = 0; i < batchNum/2; i+=2) {
+    for (int i = 0; i < batchNum; i+=2) {
         patterns[i].randBitset(); 
         patterns[i+1].data = patterns[i].data;
         patterns[i].data[bit_place].flip();
     }
+    return ;
     int pos = batchNum/2 + batchNum/4;
     Pattern tmp;
     tmp.set_size(128);
@@ -31,11 +32,19 @@ void gen_flip_random(int bit_place, int batchNum, Pattern patterns[]) {
         patterns[i].data |= tmp.data;
         tmp.randBitset();
         patterns[i].data |= tmp.data;
+        tmp.randBitset();
+        patterns[i].data |= tmp.data;
+        tmp.randBitset();
+        patterns[i].data |= tmp.data;
         patterns[i+1].data = patterns[i].data;
         patterns[i].data[bit_place].flip();
     }
     for (int i = pos; i < batchNum; i+=2) {
         patterns[i].randBitset(); 
+        tmp.randBitset();
+        patterns[i].data &= tmp.data;
+        tmp.randBitset();
+        patterns[i].data &= tmp.data;
         tmp.randBitset();
         patterns[i].data &= tmp.data;
         tmp.randBitset();
@@ -64,6 +73,7 @@ void simulate_variation(int input_var, int patternNum, Pattern output_patterns[]
     }
     // generate the random patterns 
     gen_flip_random(input_var, patternNum, patterns);
+    printf("patternnum %d\n", patternNum);
     IO.output_pattern(patternNum, patterns);
     IO.execute();
 
@@ -174,6 +184,7 @@ void find_depend(SUP output[]){
 
     fprintf(stderr,"start finding\n"); 
     int batchNum = 7200;
+    //int batchNum = 14400;
     int patternNum = batchNum * PI_N;
     Pattern* patterns = new Pattern[patternNum];   
     // initialize the pattern size

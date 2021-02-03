@@ -1,1 +1,1 @@
-./lrg ./data/final_cases_publish_1009/case4/io_info.txt ./data/final_cases_publish_1009/case4/iogen circuit.v
+./lrg-sflip ./data/final_cases_publish_1009/case$1/io_info.txt ./data/final_cases_publish_1009/case$1/iogen circuit.blif

@@ -16,7 +16,7 @@
 #include "hash.hpp"
 
 #define batchSize  240
-#define DIS 2
+#define DIS 3
 #define MIN_SIZE 1
 // TODO varcount from 0 change from 2 and 1
 // TODO Tree need to store functions 
@@ -724,7 +724,8 @@ int literal2(int index, bool sign) {
 void find_depend2(SUP* output, Pattern POS, Pattern NEG, SUP* old_sup){
 
     fprintf(stderr,"start finding\n"); 
-    int batchNum = 360;
+    //int batchNum = 360;
+    int batchNum = 720;
     //int patternNum = batchNum * PI_N;
     int varNum = old_sup->var.size();
     int patternNum = batchNum * varNum;
@@ -736,11 +737,54 @@ void find_depend2(SUP* output, Pattern POS, Pattern NEG, SUP* old_sup){
     // generate the random patterns 
     int i = 0;
     for (auto var: old_sup->var) {
-        for (int j = 0; j < batchNum; j+=2) {
+        for (int j = 0; j < batchNum/2; j+=2) {
             patterns[j+i*batchNum].randBitset();
             patterns[j+i*batchNum+1].data = patterns[j+i*batchNum].data;
 
             patterns[j+i*batchNum].data[var].flip();
+            patterns[j+i*batchNum].data |= POS.data;
+            patterns[j+i*batchNum].data &= NEG.data;
+            patterns[j+i*batchNum+1].data |= POS.data;
+            patterns[j+i*batchNum+1].data &= NEG.data;
+        }
+        int pos = batchNum/2 + batchNum/4;
+        Pattern tmp;
+        tmp.set_size(128);
+        for (int j = batchNum/2; j < pos; j+=2) {
+            patterns[i*batchNum+j].randBitset(); 
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            patterns[i*batchNum+j+1].data = patterns[i].data;
+            patterns[i*batchNum+j].data[var].flip();
+            patterns[j+i*batchNum].data |= POS.data;
+            patterns[j+i*batchNum].data &= NEG.data;
+            patterns[j+i*batchNum+1].data |= POS.data;
+            patterns[j+i*batchNum+1].data &= NEG.data;
+        }
+        for (int j = pos; j < batchNum; j+=2) {
+            patterns[i*batchNum+j].randBitset(); 
+            tmp.randBitset();
+            patterns[i].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            patterns[i*batchNum+j+1].data = patterns[i].data;
+            patterns[i*batchNum+j].data[var].flip();
             patterns[j+i*batchNum].data |= POS.data;
             patterns[j+i*batchNum].data &= NEG.data;
             patterns[j+i*batchNum+1].data |= POS.data;
@@ -781,7 +825,8 @@ void find_depend2(SUP* output, Pattern POS, Pattern NEG, SUP* old_sup){
 void find_depend3(SUP* output, Pattern POS, Pattern NEG, SUP* old_sup){
 
     fprintf(stderr,"start finding\n"); 
-    int batchNum = 360;
+    int batchNum = 720;
+    //int batchNum = 360;
     int patternNum = batchNum * PI_N;
     Pattern* patterns = new Pattern[patternNum];   
     // initialize the pattern size
@@ -790,7 +835,7 @@ void find_depend3(SUP* output, Pattern POS, Pattern NEG, SUP* old_sup){
     }
     // generate the random patterns 
     for (int i = 0; i < PI_N; i++) {
-        for (int j = 0; j < batchNum; j+=2) {
+        for (int j = 0; j < batchNum/2; j+=2) {
             patterns[j+i*batchNum].randBitset();
             patterns[j+i*batchNum+1].data = patterns[j+i*batchNum].data;
 
@@ -800,7 +845,47 @@ void find_depend3(SUP* output, Pattern POS, Pattern NEG, SUP* old_sup){
             patterns[j+i*batchNum+1].data |= POS.data;
             patterns[j+i*batchNum+1].data &= NEG.data;
         }
+        int pos = batchNum/2 + batchNum/4;
+        Pattern tmp;
+        tmp.set_size(128);
+        for (int j = batchNum/2; j < pos; j+=2) {
+            patterns[i*batchNum+j].randBitset(); 
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data |= tmp.data;
+            patterns[i*batchNum+j+1].data = patterns[i*batchNum+j].data;
+            patterns[i*batchNum+j].data[i].flip();
+            patterns[j+i*batchNum].data |= POS.data;
+            patterns[j+i*batchNum].data &= NEG.data;
+            patterns[j+i*batchNum+1].data |= POS.data;
+            patterns[j+i*batchNum+1].data &= NEG.data;
+        }
+        for (int j = pos; j < batchNum; j+=2) {
+            patterns[i*batchNum+j].randBitset(); 
+            tmp.randBitset();
+            patterns[i].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            tmp.randBitset();
+            patterns[i*batchNum+j].data &= tmp.data;
+            patterns[i*batchNum+j+1].data = patterns[i*batchNum+j].data;
+            patterns[i*batchNum+j].data[i].flip();
+            patterns[j+i*batchNum].data |= POS.data;
+            patterns[j+i*batchNum].data &= NEG.data;
+            patterns[j+i*batchNum+1].data |= POS.data;
+            patterns[j+i*batchNum+1].data &= NEG.data;
+        }
     }
+
     IO.output_pattern(patternNum, patterns);
     IO.execute();
     
@@ -1051,10 +1136,10 @@ void Tree::sp_flip2(Node* node) {
     });
     int limit = 50/(node->height+1);
     int top; 
-    if (int(funcs.size()*5/5) > limit) {
+    if (int(funcs.size()*4/5) > limit) {
         top = limit;
     } else {
-        top = funcs.size()*5/5;
+        top = funcs.size()*4/5;
     }
     std::vector<std::vector<int>> func; 
     for (int i = 0; i < top; i++) {
@@ -1169,10 +1254,10 @@ void Tree::sp_flip(Node* node) {
     });
     int limit = 50/(node->height+1);
     int top; 
-    if (int(funcs.size()*5/5) > limit) {
+    if (int(funcs.size()*4/5) > limit) {
         top = limit;
     } else {
-        top = funcs.size()*5/5;
+        top = funcs.size()*4/5;
     }
     std::vector<std::vector<int>> func; 
     for (int i = 0; i < top; i++) {
@@ -1213,7 +1298,7 @@ void Tree::sp_flip(Node* node) {
             group.push_back(tmp);
         }
     }
-    printf("var %d depth %d group size %d\n", o_idx, node->get_height(), group.size());
+    //printf("var %d depth %d group size %d\n", o_idx, node->get_height(), group.size());
     for (int i = 0; i < group.size(); i++) {
         SUP new_sup;
         new_sup.set_idx(this->root->get_support()->o_idx);
@@ -1257,6 +1342,7 @@ void Tree::sp_flip(Node* node) {
             }
             printf("fix %d\n", fix);
             if (new_sup.var.size() >= 18) {
+                printf("SP with var size %d\n", new_sup.var.size());
                 sp_flip(child);
             } else {
                 brute_force2(child);

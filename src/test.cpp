@@ -99,7 +99,7 @@ int main (int argc, char **argv) {
     assert(answerNum == patternNum);
     IO.gen_patterns(patternNum, test_patterns, answer_patterns);
     printf("begin to run abc\n");
-    run_abc();
+    run_abc(argv[3]);
     read_abc(answerNum, predicts);
     for (int i = 0; i < PO_N; i++){
         printf("%c", predicts[0].data[i]==1?'1':'0');

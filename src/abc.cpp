@@ -6,8 +6,13 @@
 
 extern int PO_N;
 
-void run_abc() {
-    std::string command_file = "src/abc_command.txt"; 
+void run_abc(char* circuit) {
+    std::string command_file = "abc_command.txt"; 
+    FILE* fp = fopen("abc_command.txt", "w");
+    fprintf(fp, "read %s\n", circuit);
+    fprintf(fp, "strash\n");
+    fprintf(fp, "sim -A test2.in -v \n");
+    fclose(fp);
     std::string command = "./abc <" + command_file + " > output.txt";
     std::system(command.c_str());
 }

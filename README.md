@@ -3,6 +3,12 @@
 ICCAD 2019 CAD Contest
 Problem A: Logic Regression on High Dimensional
 Boolean Space
+
+Report is report.pdf.
+Slide is inside the ppt directory.
+The Benchmark is downloaded through http://iccad-contest.org/2019/problems.html and inside data/final_cases_publish_1009 directory
+
+
 ## prerequest
 ```
 install abc
